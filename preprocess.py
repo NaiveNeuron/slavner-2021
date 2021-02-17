@@ -33,7 +33,8 @@ class SlavNERDataset(object):
                     for sentence in self.process_pair(a_path,
                                                       r_path,
                                                       self.sent_tokenizer,
-                                                      self.word_tokenizer):
+                                                      self.word_tokenizer,
+                                                      lang=lang):
                         sentence['topic'] = topic
                         sentence['lang'] = lang
 
@@ -44,7 +45,8 @@ class SlavNERDataset(object):
     def load_annotated(
         self,
         f_annotated: Path,
-        word_tokenizer: Callable
+        word_tokenizer: Callable,
+        lang: str
     ) -> List:
 
         text = f_annotated.read_text()
@@ -64,7 +66,7 @@ class SlavNERDataset(object):
 
             token, lemma, tag, entity = split
 
-            token = tuple(word_tokenizer(token.strip()))
+            token = tuple(word_tokenizer(token.strip(), lang=lang))
             match = {
                 "token": token,
                 "lemma": lemma,
@@ -142,6 +144,7 @@ class SlavNERDataset(object):
         self,
         match: Dict,
         word_tokenizer: Callable,
+        lang: str,
         other_marker: str = 'O'
     ) -> Dict:
 
@@ -158,7 +161,7 @@ class SlavNERDataset(object):
         else:
             tags = [f"B-{tag}"] + [f"I-{tag}"] * (n_words - 1)
             entities = [f"B-{entity}"] + [f"I-{entity}"] * (n_words - 1)
-            lemmas = word_tokenizer(match['lemma'])
+            lemmas = word_tokenizer(match['lemma'], lang=lang)
 
         return {
             'words': words,
@@ -172,18 +175,22 @@ class SlavNERDataset(object):
         f_annotated: Path,
         f_raw: Path,
         sent_tokenizer: Callable,
-        word_tokenizer: Callable
+        word_tokenizer: Callable,
+        lang: str
     ) -> List[Dict]:
 
-        file_id, annotations = self.load_annotated(f_annotated, word_tokenizer)
+        file_id, annotations = self.load_annotated(f_annotated,
+                                                   word_tokenizer,
+                                                   lang=lang)
         txt_id, lang, creation_date, url, title, text = self.load_raw(f_raw)
 
-        for sentence in sent_tokenizer(text):
+        for sentence in sent_tokenizer(text, lang=lang):
             s_match = {}
-            tokens = word_tokenizer(sentence)
+            tokens = word_tokenizer(sentence, lang=lang)
             for match in self.match_annotations_in_sentence(tokens,
                                                             annotations):
-                bios = self.match_to_bio(match, word_tokenizer=word_tokenizer)
+                bios = self.match_to_bio(match, word_tokenizer=word_tokenizer,
+                                         lang=lang)
 
                 # Use whatever came in if we still have an empty dict
                 if not s_match:
@@ -209,16 +216,34 @@ class SlavNERDataset(object):
 
 
 if __name__ == '__main__':
+    import nltk
+    nltk.download('punkt')
 
     import nltk.tokenize
     word = nltk.tokenize.toktok.ToktokTokenizer()
 
+    def word_tokenizer(text: str, lang: str) -> List[str]:
+        return word.tokenize(text)
+
+    def sent_tokenizer(text: str, lang: str = 'en') -> List[str]:
+        lang_map = {
+            'en': 'english',
+            'sl': 'slovene',
+            'cs': 'czech',
+            'pl': 'polish',
+            'uk': 'english',  # sadly, nltk does not have an Ukrainian model...
+            'bg': 'english',  # sadly, nltk does not have a Bulgarian model...
+            'ru': 'english'  # sadly, nltk does not have a Russian model...
+        }
+        return nltk.tokenize.sent_tokenize(text, lang_map[lang])
+
     dataset = SlavNERDataset(
         data_dir=Path('./bsnlp2021_train_r1/'),
-        word_tokenizer=word.tokenize,
-        sent_tokenizer=nltk.tokenize.sent_tokenize,
+        word_tokenizer=word_tokenizer,
+        sent_tokenizer=sent_tokenizer,
     )
 
     df = dataset.to_df()
     print(len(df))
     print(df.groupby(['topic', 'lang'])['lang'].count())
+    df.to_csv('./slavner-2019-preprocessed.csv', index=False)
