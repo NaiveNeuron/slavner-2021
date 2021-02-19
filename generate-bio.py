@@ -10,13 +10,14 @@ def df_to_bio(df: pd.DataFrame,
               output_path: Path,
               separator: str = '\t'):
     with output_path.open('w') as f:
-        for i, row in tqdm(df.iterrows(),
-                           total=len(df),
-                           desc=f"{output_path}"):
+        itertuple = zip(df['words'], df[output_column])
+        for words, output in tqdm(itertuple,
+                                  total=len(df),
+                                  desc=f"{output_path}"):
 
             # Covert the strings saved to .csv into Python lists
-            words = literal_eval(row['words'])
-            outputs = literal_eval(row[output_column])
+            words = literal_eval(words)
+            outputs = literal_eval(outputs)
 
             for word, out in zip(words, outputs):
                 f.write(word + separator + out + '\n')
