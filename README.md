@@ -12,9 +12,11 @@ To download the data, run the following
 ## Generate `.csv` dataset
 
 Run following in order to generate the `.csv` dataset called `slavner-2019-preprocessed.csv`
-using nltk tokenizer:
+from dataset `./bsnlp2021_train_r1` using `nltk` tokenizer:
 ```bash
-    python3 preprocess.py slavner-2019-preprocessed.csv --tokenizer nltk
+    python3 preprocess.py slavner-2019-preprocessed.csv \
+        --input-path ./bsnlp2021_train_r1 \
+        --tokenizer nltk
 ```
 
 ## Generate `.bio` files
