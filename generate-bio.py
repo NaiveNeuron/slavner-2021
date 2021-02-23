@@ -11,7 +11,7 @@ def df_to_bio(df: pd.DataFrame,
               separator: str = '\t'):
     with output_path.open('w') as f:
         itertuple = zip(df['words'], df[output_column])
-        for words, output in tqdm(itertuple,
+        for words, outputs in tqdm(itertuple,
                                   total=len(df),
                                   desc=f"{output_path}"):
 
