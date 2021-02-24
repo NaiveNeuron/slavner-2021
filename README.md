@@ -33,3 +33,16 @@ In order to generate the train/valid `.bio` files from the preprocessed
         --validation-topic ryanair \
         --output-column tags
 ```
+
+You can also generate the BIO for unique values in specific column. For example,
+using the above example but split by language:
+```bash
+    python3 generate-bio.py \
+        slavner-2019-preprocessed.csv \
+        train-wo-ryanair.bio \
+        dev-w-ryanair.bio \
+        --validation-topic ryanair \
+        --output-column tags
+        --split-by lang
+```
+This will generate file in format `train-wo-ryanair_{lang}.bio` (e.g., `train-wo-ryanair_cs.bio`).
