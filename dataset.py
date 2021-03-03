@@ -13,12 +13,14 @@ class SlavNERDataset(object):
                  word_tokenizer: Callable,
                  sent_tokenizer: Callable,
                  annotation_prefix: str = 'annotated',
-                 raw_prefix: str = 'raw'):
+                 raw_prefix: str = 'raw',
+                 output_file_suffix: str = '.out'):
         self.data_dir = data_dir
         self.word_tokenizer = word_tokenizer
         self.sent_tokenizer = sent_tokenizer
         self.annotation_prefix = annotation_prefix
         self.raw_prefix = raw_prefix
+        self.output_file_suffix = output_file_suffix
 
     def to_df(self) -> pd.DataFrame:
         annotated_path = self.data_dir / Path(self.annotation_prefix)
@@ -199,6 +201,8 @@ class SlavNERDataset(object):
                 else:
                     for key in s_match:
                         s_match[key].extend(bios[key])
+
+            s_match['id'] = txt_id
             yield s_match
 
     def list_file_pairs(
@@ -208,7 +212,7 @@ class SlavNERDataset(object):
         raw_prefix: str = 'raw'
     ) -> Tuple[str, str]:
 
-        for a_path in topic_lang_prefix.glob('*.out'):
+        for a_path in topic_lang_prefix.glob('*' + self.output_file_suffix):
             r_str = str(a_path.with_suffix('.txt'))
             r_path = Path(r_str.replace(f"/{annotation_prefix}/",
                                         f"/{raw_prefix}/"))
