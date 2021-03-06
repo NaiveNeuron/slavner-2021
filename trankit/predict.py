@@ -61,11 +61,20 @@ def predict_on_text(pipeline: Pipeline, text: str) -> Dict:
                     current_mwe['text'] = token['text']
                     current_mwe['lemma'] = token['lemma']
             elif token_ner.startswith('I-'):
-                current_mwe['text'] += ' ' + token['text']
-                current_mwe['lemma'] += ' ' + token['lemma']
+                if 'text' in current_mwe:
+                    current_mwe['text'] += ' ' + token['text']
+                    current_mwe['lemma'] += ' ' + token['lemma']
+                else:
+                    current_mwe['text'] = token['text']
+                    current_mwe['lemma'] = token['lemma']
+
             elif token_ner.startswith('E-'):
-                current_mwe['text'] += ' ' + token['text']
-                current_mwe['lemma'] += ' ' + token['lemma']
+                if 'text' in current_mwe:
+                    current_mwe['text'] += ' ' + token['text']
+                    current_mwe['lemma'] += ' ' + token['lemma']
+                else:
+                    current_mwe['text'] = token['text']
+                    current_mwe['lemma'] = token['lemma']
 
                 predictions.append([
                     current_mwe['text'],
