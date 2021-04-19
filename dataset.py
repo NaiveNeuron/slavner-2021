@@ -98,7 +98,8 @@ class SlavNERDataset(object):
 
         txt_id, language, creation_date, url, title = lines[:5]
 
-        text = ' '.join(lines[6:])
+        # add title and skip empty lines
+        text = ' '.join([line for line in lines[4:] if line.strip()])
 
         return txt_id, language, creation_date, url, title, text
 
